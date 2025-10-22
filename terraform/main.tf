@@ -66,30 +66,35 @@ resource "aws_instance" "hello_instance" {
     set -euxo pipefail
     exec > /var/log/whirlfellow-init.log 2>&1
 
-    # Update packages and install prerequisites
-    yum update -y
-    yum install -y curl git
+    echo "=== STARTING INIT ==="
 
-    # Install Node.js 20 (LTS)
-    curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-    yum install -y nodejs
+    # Ensure network and package metadata are ready
+    sleep 10
 
-    # Verify Node and npm
-    node -v || echo "Node installation failed"
-    npm -v  || echo "NPM installation failed"
+    # Update and install base packages
+    /usr/bin/yum clean all
+    /usr/bin/yum update -y
+    /usr/bin/yum install -y git curl
 
-    # Clone your app
+    # Install Node.js 20.x (retry up to 3 times)
+    for i in {1..3}; do
+      curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - && break || sleep 5
+    done
+    /usr/bin/yum install -y nodejs
+
+    echo "Node version: $(node -v || true)"
+    echo "NPM version: $(npm -v || true)"
+
+    # Clone your repo
     cd /home/ec2-user
     git clone https://github.com/thumbig/whirlfellow.git || exit 1
     cd whirlfellow/backend
-
-    # Install dependencies
     npm install
 
-    # Start server on port 3000 in background
+    # Start server on port 3000
     nohup node server.js --port 3000 > /home/ec2-user/app.log 2>&1 &
 
-    echo "Setup complete"
+    echo "=== SETUP COMPLETE ==="
   EOF
 
   tags = {

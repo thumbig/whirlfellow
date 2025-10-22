@@ -55,7 +55,8 @@ terraform destroy
 ###############################################################
 ###############################################################
 
-ssh -i ~/.ssh/id_rsa ec2-user@3.84.187.155
+ssh -i ~/.ssh/id_rsa ec2-user@$(terraform output -raw public_ip)
+sudo tail -n 50 /var/log/whirlfellow-init.log
 node -v
 npm -v
 sudo cat /var/log/cloud-init-output.log | tail -50
