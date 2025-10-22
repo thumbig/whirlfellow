@@ -85,20 +85,22 @@ resource "aws_instance" "hello_instance" {
 set -euxo pipefail
 exec > /var/log/whirlfellow-init.log 2>&1
 
-echo "=== STARTING INIT ==="
+echo "=== STARTING INIT ON $(date) ==="
 
-# Update and install packages
-dnf update -y
-dnf install -y git curl
+# Use curl-minimal (already installed) and update system
+dnf -y update
 
-# Install Node.js 20
-curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-dnf install -y nodejs
+# Install dependencies
+dnf -y install git
 
-echo "Node version: $(node -v || true)"
-echo "NPM version: $(npm -v || true)"
+# Install Node.js 20 safely using Amazon’s own modular repo
+dnf -y install nodejs20
 
-# Clone your repo
+# Verify Node and NPM
+node -v
+npm -v
+
+# Clone and start your app
 cd /home/ec2-user
 git clone https://github.com/thumbig/whirlfellow.git || exit 1
 cd whirlfellow/backend
@@ -107,7 +109,7 @@ npm install
 # Start server on port 3000
 nohup node server.js --port 3000 > /home/ec2-user/app.log 2>&1 &
 
-echo "=== SETUP COMPLETE ==="
+echo "=== SETUP COMPLETE ON $(date) ==="
 EOF
 
   tags = {

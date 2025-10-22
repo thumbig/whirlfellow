@@ -48,7 +48,7 @@ echo $(terraform output -raw public_ip)
 ping 98.81.159.20
 terraform state list
 
-curl http://$(terraform output -raw public_ip)/api/hello
+curl http://$(terraform output -raw public_ip):3000/api/hello
 
 terraform destroy
 
