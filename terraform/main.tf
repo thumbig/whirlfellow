@@ -17,12 +17,12 @@ resource "aws_security_group" "hello_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-    ingress {
-      from_port   = 3000
-      to_port     = 3000
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   ingress {
     description = "Allow SSH from anywhere (restrict later)"
@@ -61,41 +61,42 @@ resource "aws_instance" "hello_instance" {
   key_name      = aws_key_pair.demo_key.key_name
   security_groups = [aws_security_group.hello_sg.name]
 
-  user_data = <<-EOF
-    #!/bin/bash
-    set -euxo pipefail
-    exec > /var/log/whirlfellow-init.log 2>&1
+user_data = <<-EOF
+#!/bin/bash
+echo "User-data triggered on $(date)"
+set -euxo pipefail
+exec > /var/log/whirlfellow-init.log 2>&1
 
-    echo "=== STARTING INIT ==="
+echo "=== STARTING INIT ==="
 
-    # Ensure network and package metadata are ready
-    sleep 10
+# Ensure network and package metadata are ready
+sleep 10
 
-    # Update and install base packages
-    /usr/bin/yum clean all
-    /usr/bin/yum update -y
-    /usr/bin/yum install -y git curl
+# Update and install base packages
+/usr/bin/yum clean all
+/usr/bin/yum update -y
+/usr/bin/yum install -y git curl
 
-    # Install Node.js 20.x (retry up to 3 times)
-    for i in {1..3}; do
-      curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - && break || sleep 5
-    done
-    /usr/bin/yum install -y nodejs
+# Install Node.js 20.x (retry up to 3 times)
+for i in {1..3}; do
+  curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - && break || sleep 5
+done
+/usr/bin/yum install -y nodejs
 
-    echo "Node version: $(node -v || true)"
-    echo "NPM version: $(npm -v || true)"
+echo "Node version: $(node -v || true)"
+echo "NPM version: $(npm -v || true)"
 
-    # Clone your repo
-    cd /home/ec2-user
-    git clone https://github.com/thumbig/whirlfellow.git || exit 1
-    cd whirlfellow/backend
-    npm install
+# Clone your repo
+cd /home/ec2-user
+git clone https://github.com/thumbig/whirlfellow.git || exit 1
+cd whirlfellow/backend
+npm install
 
-    # Start server on port 3000
-    nohup node server.js --port 3000 > /home/ec2-user/app.log 2>&1 &
+# Start server on port 3000
+nohup node server.js --port 3000 > /home/ec2-user/app.log 2>&1 &
 
-    echo "=== SETUP COMPLETE ==="
-  EOF
+echo "=== SETUP COMPLETE ==="
+EOF
 
   tags = {
     Name = "whirlfellow"
