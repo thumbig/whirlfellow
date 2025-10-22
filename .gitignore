@@ -1,0 +1,4 @@
+venv/
+.terraform/
+.vscode/
+node_modules/
