@@ -48,10 +48,21 @@ echo $(terraform output -raw public_ip)
 ping 98.81.159.20
 terraform state list
 
-
 curl http://$(terraform output -raw public_ip)/api/hello
 
 terraform destroy
+
+###############################################################
+###############################################################
+
+ssh -i ~/.ssh/id_rsa ec2-user@3.84.187.155
+node -v
+npm -v
+sudo cat /var/log/cloud-init-output.log | tail -50
+ps aux | grep node
+cat /home/ec2-user/whirlfellow/backend/app.log
+
+
 
 ###############################################################
 ###############################################################
